@@ -1,0 +1,70 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand">Recipe Book</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a
+          routerLink="recipes"
+          class="nav-link"
+          routerLinkActive="activeClass"
+          *ngIf="isAuthenticated"
+        >Recipes</a>
+      </li>
+      <li class="nav-item">
+        <a
+          routerLink="auth"
+          class="nav-link"
+          routerLinkActive="activeClass"
+          *ngIf="!isAuthenticated"
+        >Authenticate</a>
+      </li>
+      <li class="nav-item">
+        <a
+          routerLink="shopping-list"
+          class="nav-link"
+          routerLinkActive="activeClass"
+        >Shopping List</a>
+      </li>
+    </ul>
+    <button
+      type='button'
+      class="btn btn-info button-margin"
+      style='cursor: pointer'
+      *ngIf="isAuthenticated"
+      (click)="onLogOut()"
+    >Log Out
+    </button>
+<!--    <div-->
+<!--      class="btn-group"-->
+<!--      #r="appDropDown"-->
+<!--      *ngIf="isAuthenticated"-->
+<!--    >-->
+<!--      <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">-->
+<!--        Manage-->
+<!--        <span class="caret"></span>-->
+<!--      </button>-->
+<!--&lt;!&ndash;      <ul&ndash;&gt;-->
+<!--&lt;!&ndash;        class="dropdown-menu dropdown-menu-right"&ndash;&gt;-->
+<!--&lt;!&ndash;        [ngClass]="{'show':r.isOpen}"&ndash;&gt;-->
+<!--&lt;!&ndash;      >&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>&ndash;&gt;-->
+<!--&lt;!&ndash;          <a&ndash;&gt;-->
+<!--&lt;!&ndash;            class="dropdown-item"&ndash;&gt;-->
+<!--&lt;!&ndash;            style="cursor:pointer"&ndash;&gt;-->
+<!--&lt;!&ndash;            (click)="onSaveData()"&ndash;&gt;-->
+<!--&lt;!&ndash;          >Save Data</a></li>&ndash;&gt;-->
+<!--&lt;!&ndash;        <li>&ndash;&gt;-->
+<!--&lt;!&ndash;          <a&ndash;&gt;-->
+<!--&lt;!&ndash;            class="dropdown-item"&ndash;&gt;-->
+<!--&lt;!&ndash;            style="cursor:pointer"&ndash;&gt;-->
+<!--&lt;!&ndash;            (click)="onFetchData()"&ndash;&gt;-->
+<!--&lt;!&ndash;          >Fetch Data</a></li>&ndash;&gt;-->
+<!--&lt;!&ndash;      </ul>&ndash;&gt;-->
+<!--    </div>-->
+  </div>
+</nav>
