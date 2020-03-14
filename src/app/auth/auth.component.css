@@ -1,3 +1,15 @@
 .button-margin {
   margin-right: 10px;
 }
+
+input.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched {
+  border: 1px solid red;
+}
+
+.error-p {
+  color: red;
+  font-family: sans-serif;
+  text-align: left;
+  margin-top: 6%;
+}

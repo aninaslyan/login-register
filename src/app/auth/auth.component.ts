@@ -1,5 +1,5 @@
-import { Component, ComponentFactoryResolver, OnDestroy, ViewChild } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -13,29 +13,61 @@ import { PlaceholderDirective } from '../shared/placeholder/placeholder.directiv
   templateUrl: './auth.component.html',
   styleUrls: ['./auth.component.css']
 })
-export class AuthComponent implements OnDestroy {
+export class AuthComponent implements OnInit, OnDestroy {
   isLoginMode = true;
   isLoading = false;
+  form: FormGroup;
   @ViewChild(PlaceholderDirective, { static: false }) alertHost: PlaceholderDirective;
 
   private closeSubscription: Subscription;
 
-  constructor(private authService: AuthService, private router: Router, private componentFactoryResolver: ComponentFactoryResolver) {
+  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private componentFactoryResolver: ComponentFactoryResolver) {
+  }
+
+  ngOnInit(): void {
+    this.formInit();
+  }
+
+  formInit() {
+    this.form = this.fb.group({
+      email: ['', Validators.compose([Validators.email, Validators.required])],
+      password: [
+        null,
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(8),
+          AuthComponent.patternValidator(/\d/, { hasNumber: true }),
+          AuthComponent.patternValidator(/[A-Z]/, { hasCapitalCase: true }),
+          AuthComponent.patternValidator(/[a-z]/, { hasSmallCase: true }),
+          AuthComponent.patternValidator(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/, { hasSpecialCharacters: true }),
+        ])
+      ]
+    });
+  }
+
+  static patternValidator(regex: RegExp, error: ValidationErrors): ValidatorFn {
+    return (control: AbstractControl): { [key: string]: any } => {
+      if (!control.value) {
+        return null;
+      }
+      const valid = regex.test(control.value);
+      return valid ? null : error;
+    };
   }
 
   onSwitchMode() {
     this.isLoginMode = !this.isLoginMode;
   }
 
-  onSubmit(form: NgForm) {
-    if (!form.valid) {
+  onSubmit() {
+    if (!this.form.valid) {
       return;
     }
 
     this.isLoading = true;
 
-    const email = form.value.email;
-    const password = form.value.password;
+    const email = this.form.value.email;
+    const password = this.form.value.password;
 
     let authObs: Observable<IAuthResponseData>;
 
@@ -54,7 +86,7 @@ export class AuthComponent implements OnDestroy {
       this.isLoading = false;
     });
 
-    form.reset();
+    this.form.reset();
   }
 
   private showErrorAlert(message: string) {

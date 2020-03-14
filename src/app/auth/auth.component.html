@@ -1,51 +1,75 @@
 <ng-template appPlaceholder></ng-template>
 <div class="row">
   <div class="col-xs-12 col-md-6">
-<!--    <div-->
-<!--      *ngIf="error"-->
-<!--      class="alert alert-danger">-->
-<!--      <p>{{error}}</p>-->
-<!--    </div>-->
-<!--    <app-alert-->
-<!--      [message]="error"-->
-<!--      *ngIf="error"-->
-<!--      (close)="onHandleError()"-->
-<!--    ></app-alert>-->
     <div
       *ngIf="isLoading"
       style="text-align: center">
       <app-loading-spinner></app-loading-spinner>
     </div>
     <form
-      #f='ngForm'
-      (ngSubmit)="onSubmit(f)"
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
       *ngIf="!isLoading"
     >
       <div class="form-group">
         <label for="email">Email</label>
         <input
           ngModel
-          name="email"
-          required
-          email
           type="email"
           id='email'
+          formControlName="email"
           class="form-control">
+        <div *ngIf="form.get('email').touched && form.get('email').invalid">
+          <p
+            class="error-p"
+            *ngIf="form.controls['email'].hasError('required')"
+          >Email field is required</p>
+          <p
+            class="error-p"
+            *ngIf="form.controls['email'].hasError('email')"
+          >Email field is in wrong format</p>
+        </div>
       </div>
       <div class="form-group">
         <label for="password">Password</label>
         <input
-          ngModel
-          name="password"
-          required
-          minlength="6"
           type="password"
           id='password'
+          formControlName="password"
           class="form-control">
+        <div
+          class="error-p"
+          *ngIf="form.get('password').touched && form.get('password').invalid"
+        >
+          <p
+            class="error-p"
+            *ngIf="form.controls['password'].hasError('required')"
+          >Password field is required</p>
+          <p
+            class="error-p"
+            *ngIf="form.controls['password'].hasError('minlength')"
+          >Password minimum length is 8</p>
+          <p
+            class="error-p"
+            *ngIf="form.controls['password'].hasError('hasNumber')"
+          >Password must contain minimum 1 number</p>
+          <p
+            class="error-p"
+            *ngIf="form.controls['password'].hasError('hasCapitalCase')"
+          >Password must contain minimum 1 uppercase letter</p>
+          <p
+            class="error-p"
+            *ngIf="form.controls['password'].hasError('hasSmallCase')"
+          >Password must contain minimum 1 lowercase letter</p>
+          <p
+            class="error-p"
+            *ngIf="form.controls['password'].hasError('hasSpecialCharacters')"
+          >Password must contain minimum 1 special character letter</p>
+        </div>
       </div>
       <div>
         <button
-          [disabled]="!f.valid"
+          [disabled]="!form.valid"
           type="submit"
           class="button-margin btn btn-primary"
         >{{isLoginMode ? 'Log in' : 'Sign up'}}</button>
