@@ -13,3 +13,12 @@ select.ng-invalid.ng-touched {
   text-align: left;
   margin-top: 6%;
 }
+
+.gen-a-password {
+  margin-left: 10%;
+}
+
+.bold-p {
+  font-weight: bold;
+  margin-top: 10%;
+}

@@ -1,5 +1,5 @@
 import { Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 
@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { IAuthResponseData } from './auth.service';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
+import { PasswordService } from "./password.service";
 
 @Component({
   selector: 'app-auth',
@@ -17,11 +18,18 @@ export class AuthComponent implements OnInit, OnDestroy {
   isLoginMode = true;
   isLoading = false;
   form: FormGroup;
+  generatedPass: string;
   @ViewChild(PlaceholderDirective, { static: false }) alertHost: PlaceholderDirective;
 
   private closeSubscription: Subscription;
 
-  constructor(private fb: FormBuilder, private authService: AuthService, private router: Router, private componentFactoryResolver: ComponentFactoryResolver) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private componentFactoryResolver: ComponentFactoryResolver,
+    private passwordService: PasswordService
+    ) {
   }
 
   ngOnInit(): void {
@@ -36,23 +44,13 @@ export class AuthComponent implements OnInit, OnDestroy {
         Validators.compose([
           Validators.required,
           Validators.minLength(8),
-          AuthComponent.patternValidator(/\d/, { hasNumber: true }),
-          AuthComponent.patternValidator(/[A-Z]/, { hasCapitalCase: true }),
-          AuthComponent.patternValidator(/[a-z]/, { hasSmallCase: true }),
-          AuthComponent.patternValidator(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/, { hasSpecialCharacters: true }),
+          this.passwordService.patternValidator(/\d/, { hasNumber: true }),
+          this.passwordService.patternValidator(/[A-Z]/, { hasCapitalCase: true }),
+          this.passwordService.patternValidator(/[a-z]/, { hasSmallCase: true }),
+          this.passwordService.patternValidator(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/, { hasSpecialCharacters: true }),
         ])
       ]
     });
-  }
-
-  static patternValidator(regex: RegExp, error: ValidationErrors): ValidatorFn {
-    return (control: AbstractControl): { [key: string]: any } => {
-      if (!control.value) {
-        return null;
-      }
-      const valid = regex.test(control.value);
-      return valid ? null : error;
-    };
   }
 
   onSwitchMode() {
@@ -103,6 +101,10 @@ export class AuthComponent implements OnInit, OnDestroy {
         this.closeSubscription.unsubscribe();
         hostViewContainerRef.clear();
     });
+  }
+
+  generateAPass() {
+    this.generatedPass = this.passwordService.randomPassword(8);
   }
 
   ngOnDestroy(): void {
