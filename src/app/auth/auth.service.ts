@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { BehaviorSubject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
-import { Router } from '@angular/router';
 
 import { environment } from '../../environments/environment';
 import { IUser, User } from './user.model';
@@ -19,6 +19,8 @@ export interface IAuthResponseData {
 @Injectable({providedIn: 'root'})
 export class AuthService {
   user = new BehaviorSubject<User>(null);
+  // todo think about user count
+  userCount = 0;
   private tokenExpirationTimer: any;
 
   constructor(private http: HttpClient, private router: Router) {
@@ -46,6 +48,12 @@ export class AuthService {
         break;
       case 'INVALID_PASSWORD':
         errorMessage = 'The password is invalid!';
+        break;
+      case 'INVALID_ID_TOKEN':
+        errorMessage = 'Your credential is no longer valid. Please sign in again!';
+        break;
+      case 'USER_NOT_FOUND':
+        errorMessage = 'There is no user with this identifier!';
         break;
     }
 
@@ -90,6 +98,13 @@ export class AuthService {
     }, expirationDuration);
   }
 
+  emailVerification(requestType, idToken) {
+    return this.http.post<IAuthResponseData>(environment.sendEmail, {
+      requestType,
+      idToken,
+    }).pipe(catchError(AuthService.handleError));
+  }
+
   signUp(email: string, password: string) {
     return this.http.post<IAuthResponseData>(environment.userSignUp, {
       email,
@@ -98,6 +113,11 @@ export class AuthService {
     })
       .pipe(catchError(AuthService.handleError),
         tap(resData => {
+          this.emailVerification("VERIFY_EMAIL", resData.idToken)
+            .subscribe(email => {
+              // todo
+              console.log(email, 'email sent');
+            });
           this.handleAuthentication(resData.email, resData.localId, resData.idToken, +resData.expiresIn);
         })
       );
@@ -114,15 +134,13 @@ export class AuthService {
           this.handleAuthentication(resData.email, resData.localId, resData.idToken, +resData.expiresIn);
         })
       );
-
-    // why not subscribe at once
   }
 
   logOut() {
     this.user.next(null);
     this.router.navigate(['/auth']);
     localStorage.removeItem('userData');
-    if(this.tokenExpirationTimer) {
+    if (this.tokenExpirationTimer) {
       clearTimeout(this.tokenExpirationTimer);
     }
     this.tokenExpirationTimer = null;
