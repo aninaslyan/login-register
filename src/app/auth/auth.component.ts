@@ -7,7 +7,7 @@ import { AuthService } from './auth.service';
 import { IAuthResponseData } from './auth.service';
 import { AlertComponent } from '../shared/alert/alert.component';
 import { PlaceholderDirective } from '../shared/placeholder/placeholder.directive';
-import { PasswordService } from "./password.service";
+import { PasswordService } from './password.service';
 
 @Component({
   selector: 'app-auth',
@@ -17,8 +17,11 @@ import { PasswordService } from "./password.service";
 export class AuthComponent implements OnInit, OnDestroy {
   isLoginMode = true;
   isLoading = false;
-  form: FormGroup;
+  authForm: FormGroup;
+  verifyForm: FormGroup;
   generatedPass: string;
+  isEmailSent: boolean;
+  userInfo: IAuthResponseData;
   @ViewChild(PlaceholderDirective, { static: false }) alertHost: PlaceholderDirective;
 
   private closeSubscription: Subscription;
@@ -37,7 +40,7 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   formInit() {
-    this.form = this.fb.group({
+    this.authForm = this.fb.group({
       email: ['', Validators.compose([Validators.email, Validators.required])],
       password: [
         null,
@@ -51,6 +54,9 @@ export class AuthComponent implements OnInit, OnDestroy {
         ])
       ]
     });
+    this.verifyForm = this.fb.group({
+      emailCode: ['']
+    });
   }
 
   onSwitchMode() {
@@ -58,14 +64,14 @@ export class AuthComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    if (!this.form.valid) {
+    if (!this.authForm.valid) {
       return;
     }
 
     this.isLoading = true;
 
-    const email = this.form.value.email;
-    const password = this.form.value.password;
+    const email = this.authForm.value.email;
+    const password = this.authForm.value.password;
 
     let authObs: Observable<IAuthResponseData>;
 
@@ -76,15 +82,20 @@ export class AuthComponent implements OnInit, OnDestroy {
     }
 
     authObs.subscribe(resData => {
-      console.log(resData);
+      this.userInfo = resData;
+      this.authService.isEmailSent
+        .subscribe(isSent => {
+          this.isEmailSent = isSent;
+        }, errorMessage => {
+          this.showErrorAlert(errorMessage);
+        });
       this.isLoading = false;
-      this.router.navigate(['/users']);
     }, errorMessage => {
       this.showErrorAlert(errorMessage);
       this.isLoading = false;
     });
 
-    this.form.reset();
+    this.authForm.reset();
   }
 
   private showErrorAlert(message: string) {
@@ -107,8 +118,19 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.generatedPass = this.passwordService.randomPassword(8);
   }
 
+  verifyTheCode() {
+    const verificationCode = this.verifyForm.controls.emailCode.value;
+    const userInfo = this.userInfo;
+    const response = this.authService.confirmCode(verificationCode, userInfo.localId, userInfo.idToken, userInfo.expiresIn);
+    response.subscribe(resData => {
+      this.router.navigate(['/users']);
+    }, errorMessage => {
+      this.showErrorAlert(errorMessage);
+    });
+  }
+
   ngOnDestroy(): void {
-    if(this.closeSubscription) {
+    if (this.closeSubscription) {
       this.closeSubscription.unsubscribe();
     }
   }

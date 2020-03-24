@@ -14,8 +14,8 @@ select.ng-invalid.ng-touched {
   margin-top: 6%;
 }
 
-.gen-a-password {
-  margin-left: 10%;
+.top-margin {
+  margin-top: 25px;
 }
 
 .bold-p {

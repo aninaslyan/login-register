@@ -1,32 +1,31 @@
 <ng-template appPlaceholder></ng-template>
 <div class="row">
-  <div class="col-xs-10 col-md-4">
+  <div class="col-xs-12 col-md-4">
     <div
       *ngIf="isLoading"
       style="text-align: center">
       <app-loading-spinner></app-loading-spinner>
     </div>
     <form
-      [formGroup]="form"
+      [formGroup]="authForm"
       (ngSubmit)="onSubmit()"
       *ngIf="!isLoading"
     >
       <div class="form-group">
         <label for="email">Email</label>
         <input
-          ngModel
           type="email"
           id='email'
           formControlName="email"
           class="form-control">
-        <div *ngIf="form.get('email').touched && form.get('email').invalid">
+        <div *ngIf="authForm.get('email').touched && authForm.get('email').invalid">
           <p
             class="error-p"
-            *ngIf="form.controls['email'].hasError('required')"
+            *ngIf="authForm.controls['email'].hasError('required')"
           >Email field is required</p>
           <p
             class="error-p"
-            *ngIf="form.controls['email'].hasError('email')"
+            *ngIf="authForm.controls['email'].hasError('email')"
           >Email field is in wrong format</p>
         </div>
       </div>
@@ -39,37 +38,37 @@
           class="form-control">
         <div
           class="error-p"
-          *ngIf="form.get('password').touched && form.get('password').invalid"
+          *ngIf="authForm.get('password').touched && authForm.get('password').invalid"
         >
           <p
             class="error-p"
-            *ngIf="form.controls['password'].hasError('required')"
+            *ngIf="authForm.controls['password'].hasError('required')"
           >Password field is required</p>
           <p
             class="error-p"
-            *ngIf="form.controls['password'].hasError('minlength')"
+            *ngIf="authForm.controls['password'].hasError('minlength')"
           >Password minimum length is 8</p>
           <p
             class="error-p"
-            *ngIf="form.controls['password'].hasError('hasNumber')"
+            *ngIf="authForm.controls['password'].hasError('hasNumber')"
           >Password must contain minimum 1 number</p>
           <p
             class="error-p"
-            *ngIf="form.controls['password'].hasError('hasCapitalCase')"
+            *ngIf="authForm.controls['password'].hasError('hasCapitalCase')"
           >Password must contain minimum 1 uppercase letter</p>
           <p
             class="error-p"
-            *ngIf="form.controls['password'].hasError('hasSmallCase')"
+            *ngIf="authForm.controls['password'].hasError('hasSmallCase')"
           >Password must contain minimum 1 lowercase letter</p>
           <p
             class="error-p"
-            *ngIf="form.controls['password'].hasError('hasSpecialCharacters')"
+            *ngIf="authForm.controls['password'].hasError('hasSpecialCharacters')"
           >Password must contain minimum 1 special character letter</p>
         </div>
       </div>
       <div>
         <button
-          [disabled]="!form.valid"
+          [disabled]="!authForm.valid"
           type="submit"
           class="button-margin btn btn-primary"
         >{{isLoginMode ? 'Log in' : 'Sign up'}}</button>
@@ -82,15 +81,36 @@
       </div>
     </form>
   </div>
-  <div class="col-xs-12 gen-a-password">
+  <div class="col-xs-12 col-md-4">
     <button
       *ngIf="!isLoginMode"
-      class="btn btn-info"
+      class="btn btn-info top-margin"
       (click)="generateAPass()"
       type="button"
     >Generate a password
     </button>
     <p class="bold-p">{{generatedPass}}</p>
+  </div>
+  <div class="col-xs-12 col-md-4">
+    <form
+      *ngIf="isEmailSent"
+      [formGroup]="verifyForm"
+    >
+      <p>Your verification code has been sent to you email address. Please paste here the code.</p>
+      <input
+        type="text"
+        id='verifyCode'
+        formControlName="emailCode"
+        class="form-control"
+      >
+      <button
+        *ngIf="isEmailSent"
+        class="btn btn-info top-margin"
+        (click)="verifyTheCode()"
+        type="button"
+      >Submit Code
+      </button>
+    </form>
   </div>
 </div>
 
