@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, throwError } from 'rxjs';
+import { BehaviorSubject, Subject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
@@ -16,12 +16,18 @@ export interface IAuthResponseData {
   registered?: boolean;
 }
 
+export interface IVerificationResponse {
+  email: string;
+  emailVerified: boolean;
+}
+
 @Injectable({providedIn: 'root'})
 export class AuthService {
   user = new BehaviorSubject<User>(null);
   // todo think about user count
   userCount = 0;
   private tokenExpirationTimer: any;
+  isEmailSent = new Subject<boolean>();
 
   constructor(private http: HttpClient, private router: Router) {
   }
@@ -54,6 +60,15 @@ export class AuthService {
         break;
       case 'USER_NOT_FOUND':
         errorMessage = 'There is no user with this identifier!';
+        break;
+      case 'INVALID_OOB_CODE':
+        errorMessage = 'The verification code is wrong or expired!';
+        break;
+      case 'EXPIRED_OOB_CODE':
+        errorMessage = 'The verification code is expired!';
+        break;
+      case 'USER_DISABLED':
+        errorMessage = 'The user account has been disabled by administrator!';
         break;
     }
 
@@ -113,12 +128,10 @@ export class AuthService {
     })
       .pipe(catchError(AuthService.handleError),
         tap(resData => {
-          this.emailVerification("VERIFY_EMAIL", resData.idToken)
-            .subscribe(email => {
-              // todo
-              console.log(email, 'email sent');
+          this.emailVerification('VERIFY_EMAIL', resData.idToken)
+            .subscribe(sentEmail => {
+              this.isEmailSent.next(true);
             });
-          this.handleAuthentication(resData.email, resData.localId, resData.idToken, +resData.expiresIn);
         })
       );
   }
@@ -132,6 +145,17 @@ export class AuthService {
       .pipe(catchError(AuthService.handleError),
         tap(resData => {
           this.handleAuthentication(resData.email, resData.localId, resData.idToken, +resData.expiresIn);
+        })
+      );
+  }
+
+  confirmCode(code: string, localId: string, idToken: string, expiresIn: string) {
+    return this.http.post<IVerificationResponse>(environment.confirmEmail, {
+      oobCode: code,
+    })
+      .pipe(catchError(AuthService.handleError),
+        tap(resData => {
+          this.handleAuthentication(resData.email, localId, idToken, +expiresIn);
         })
       );
   }
