@@ -5,10 +5,13 @@
 export const environment = {
   production: false,
   apiUrl: 'https://login-register-b1f78.firebaseio.com/users.json',
-  userSignUp: 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDbx6nFtrno2Dwjm1JvItMhGFBaxCspFjE',
-  userLogIn: 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDbx6nFtrno2Dwjm1JvItMhGFBaxCspFjE',
-  sendEmail: 'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyDbx6nFtrno2Dwjm1JvItMhGFBaxCspFjE',
-  confirmEmail: 'https://identitytoolkit.googleapis.com/v1/accounts:update?key=AIzaSyDbx6nFtrno2Dwjm1JvItMhGFBaxCspFjE',
+  apiKey: 'AIzaSyDbx6nFtrno2Dwjm1JvItMhGFBaxCspFjE',
+  userSignUp: `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${this.apiKey}`,
+  userLogIn: `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${this.apiKey}`,
+  sendEmail: `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${this.apiKey}`,
+  confirmEmail: `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${this.apiKey}`,
+  sendResetPassEmail: `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${this.apiKey}`,
+  confirmResetPassEmail: `https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${this.apiKey}`,
 };
 
 /*

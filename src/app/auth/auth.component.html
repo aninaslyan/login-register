@@ -11,7 +11,7 @@
       (ngSubmit)="onSubmit()"
       *ngIf="!isLoading"
     >
-      <div class="form-group">
+      <div class="form-group" *ngIf="!isForgotPassEmailSent">
         <label for="email">Email</label>
         <input
           type="email"
@@ -29,7 +29,7 @@
           >Email field is in wrong format</p>
         </div>
       </div>
-      <div class="form-group">
+      <div class="form-group" *ngIf="!isForgotPassMode">
         <label for="password">Password</label>
         <input
           type="password"
@@ -68,18 +68,33 @@
       </div>
       <div>
         <button
+          *ngIf="!isForgotPassMode"
           [disabled]="!authForm.valid"
           type="submit"
           class="button-margin btn btn-primary"
         >{{isLoginMode ? 'Log in' : 'Sign up'}}</button>
         <button
+          *ngIf="!isForgotPassMode"
           class="button-margin btn btn-primary"
           (click)="onSwitchMode()"
           type="button"
         >Switch to {{isLoginMode ? 'Sign up' : 'Log in'}}
         </button>
       </div>
+      <div>
+        <button
+          *ngIf="isForgotPassMode && !isForgotPassEmailSent"
+          [disabled]="authForm.controls['email'].invalid"
+          (click)="onForgotPassword(authForm.controls['email'].value)"
+          type="submit"
+          class="btn btn-info"
+        >Send Recovery code to Email
+        </button>
+      </div>
     </form>
+    <p *ngIf="isLoginMode && !isForgotPassMode" class="forgot-pass-p">
+      <a class="forgot-pass-a" (click)="this.isForgotPassMode = true">Forgot password?</a>
+    </p>
   </div>
   <div class="col-xs-12 col-md-4">
     <button
@@ -93,24 +108,79 @@
   </div>
   <div class="col-xs-12 col-md-4">
     <form
-      *ngIf="isEmailSent"
+      *ngIf="isSignUpEmailSent"
       [formGroup]="verifyForm"
     >
       <p>Your verification code has been sent to you email address. Please paste here the code.</p>
       <input
         type="text"
-        id='verifyCode'
         formControlName="emailCode"
         class="form-control"
       >
       <button
-        *ngIf="isEmailSent"
+        *ngIf="isSignUpEmailSent"
         class="btn btn-info top-margin"
-        (click)="verifyTheCode()"
+        (click)="verifyEmailRegistrationCode()"
         type="button"
       >Submit Code
       </button>
     </form>
   </div>
+  <div class="col-xs-12 col-md-4">
+    <form
+      *ngIf="isForgotPassEmailSent"
+      [formGroup]="sendPassForm"
+    >
+      <p>Your reset password code has been sent to you email address. Please paste here the code.</p>
+      <label for="resetCode">Reset Password Code</label>
+      <input
+        type="text"
+        id="resetCode"
+        formControlName="resetCode"
+        class="form-control"
+      >
+      <label for="resetCode">New Password</label>
+      <input
+        type="password"
+        formControlName="newPass"
+        class="form-control"
+      >
+      <div
+        class="error-p"
+        *ngIf="sendPassForm.get('newPass').touched && sendPassForm.get('newPass').invalid"
+      >
+        <p
+          class="error-p"
+          *ngIf="sendPassForm.controls['newPass'].hasError('newPass')"
+        >Password field is required</p>
+        <p
+          class="error-p"
+          *ngIf="sendPassForm.controls['newPass'].hasError('minlength')"
+        >Password minimum length is 8</p>
+        <p
+          class="error-p"
+          *ngIf="sendPassForm.controls['newPass'].hasError('hasNumber')"
+        >Password must contain minimum 1 number</p>
+        <p
+          class="error-p"
+          *ngIf="sendPassForm.controls['newPass'].hasError('hasCapitalCase')"
+        >Password must contain minimum 1 uppercase letter</p>
+        <p
+          class="error-p"
+          *ngIf="sendPassForm.controls['newPass'].hasError('hasSmallCase')"
+        >Password must contain minimum 1 lowercase letter</p>
+        <p
+          class="error-p"
+          *ngIf="sendPassForm.controls['newPass'].hasError('hasSpecialCharacters')"
+        >Password must contain minimum 1 special character letter</p>
+      </div>
+      <button
+        *ngIf="isForgotPassEmailSent"
+        class="btn btn-info top-margin"
+        (click)="resetPassword()"
+        type="button"
+      >Reset Password
+      </button>
+    </form>
+  </div>
 </div>
-

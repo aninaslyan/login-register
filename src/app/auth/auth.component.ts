@@ -19,8 +19,11 @@ export class AuthComponent implements OnInit, OnDestroy {
   isLoading = false;
   authForm: FormGroup;
   verifyForm: FormGroup;
+  sendPassForm: FormGroup;
   generatedPass: string;
-  isEmailSent: boolean;
+  isSignUpEmailSent: boolean;
+  isForgotPassEmailSent: boolean;
+  isForgotPassMode: boolean;
   userInfo: IAuthResponseData;
   @ViewChild(PlaceholderDirective, { static: false }) alertHost: PlaceholderDirective;
 
@@ -43,7 +46,7 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.authForm = this.fb.group({
       email: ['', Validators.compose([Validators.email, Validators.required])],
       password: [
-        null,
+        '',
         Validators.compose([
           Validators.required,
           Validators.minLength(8),
@@ -55,7 +58,21 @@ export class AuthComponent implements OnInit, OnDestroy {
       ]
     });
     this.verifyForm = this.fb.group({
-      emailCode: ['']
+      emailCode: ''
+    });
+    this.sendPassForm = this.fb.group({
+      resetCode: '',
+      newPass: [
+        '',
+        Validators.compose([
+          Validators.required,
+          Validators.minLength(8),
+          this.passwordService.patternValidator(/\d/, { hasNumber: true }),
+          this.passwordService.patternValidator(/[A-Z]/, { hasCapitalCase: true }),
+          this.passwordService.patternValidator(/[a-z]/, { hasSmallCase: true }),
+          this.passwordService.patternValidator(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/, { hasSpecialCharacters: true }),
+        ])
+      ]
     });
   }
 
@@ -75,7 +92,7 @@ export class AuthComponent implements OnInit, OnDestroy {
 
     if (this.isLoginMode) {
       this.authService.logIn(email, password)
-        .subscribe((resData: IAuthResponseData) => {
+        .subscribe(() => {
           this.isLoading = false;
           this.router.navigate(['/users']);
         }, errorMessage => {
@@ -86,9 +103,9 @@ export class AuthComponent implements OnInit, OnDestroy {
       this.authService.signUp(email, password)
         .subscribe((resData: IAuthResponseData) => {
           this.userInfo = resData;
-          this.authService.isEmailSent
-            .subscribe(isSent => {
-              this.isEmailSent = isSent;
+          this.authService.emailVerification('VERIFY_EMAIL', resData.idToken)
+            .subscribe(() => {
+              this.isSignUpEmailSent = true;
             }, errorMessage => {
               this.showErrorAlert(errorMessage);
             });
@@ -122,15 +139,37 @@ export class AuthComponent implements OnInit, OnDestroy {
     this.generatedPass = this.passwordService.randomPassword(8);
   }
 
-  verifyTheCode() {
+  verifyEmailRegistrationCode() {
     const verificationCode = this.verifyForm.controls.emailCode.value;
     const userInfo = this.userInfo;
-    const response = this.authService.confirmCode(verificationCode, userInfo.localId, userInfo.idToken, userInfo.expiresIn);
-    response.subscribe(resData => {
+    const response = this.authService.confirmEmailCode(verificationCode, userInfo.localId, userInfo.idToken, userInfo.expiresIn);
+    response.subscribe(() => {
       this.router.navigate(['/users']);
     }, errorMessage => {
       this.showErrorAlert(errorMessage);
     });
+  }
+
+  resetPassword() {
+    const verificationCode = this.sendPassForm.controls.resetCode.value;
+    const newPassword = this.sendPassForm.controls.newPass.value;
+    this.authService.confirmResetPasswordCode(verificationCode, newPassword)
+      .subscribe(() => {
+        this.showErrorAlert('Your password has been reset. Please log in.');
+        location.reload();
+      }, errorMessage => {
+        this.showErrorAlert(errorMessage);
+      });
+  }
+
+  onForgotPassword(email: string) {
+    this.authService.sendForgotPasswordCode(email)
+      .subscribe(resData => {
+        console.log(resData, 'onForgotPassword');
+        this.isForgotPassEmailSent = true;
+      }, errorMessage => {
+        this.showErrorAlert(errorMessage);
+      });
   }
 
   ngOnDestroy(): void {

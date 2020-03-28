@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Subject, throwError } from 'rxjs';
+import { BehaviorSubject, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 
 import { environment } from '../../environments/environment';
@@ -27,7 +27,6 @@ export class AuthService {
   // todo think about user count
   userCount = 0;
   private tokenExpirationTimer: any;
-  isEmailSent = new Subject<boolean>();
 
   constructor(private http: HttpClient, private router: Router) {
   }
@@ -125,15 +124,7 @@ export class AuthService {
       email,
       password,
       returnSecureToken: true
-    })
-      .pipe(catchError(AuthService.handleError),
-        tap(resData => {
-          this.emailVerification('VERIFY_EMAIL', resData.idToken)
-            .subscribe(sentEmail => {
-              this.isEmailSent.next(true);
-            });
-        })
-      );
+    }).pipe(catchError(AuthService.handleError));
   }
 
   logIn(email: string, password: string) {
@@ -149,7 +140,7 @@ export class AuthService {
       );
   }
 
-  confirmCode(code: string, localId: string, idToken: string, expiresIn: string) {
+  confirmEmailCode(code: string, localId: string, idToken: string, expiresIn: string) {
     return this.http.post<IVerificationResponse>(environment.confirmEmail, {
       oobCode: code,
     })
@@ -158,6 +149,20 @@ export class AuthService {
           this.handleAuthentication(resData.email, localId, idToken, +expiresIn);
         })
       );
+  }
+
+  sendForgotPasswordCode(email: string) {
+    return this.http.post<IVerificationResponse>(environment.sendResetPassEmail, {
+      email,
+      requestType: 'PASSWORD_RESET'
+    }).pipe(catchError(AuthService.handleError));
+  }
+
+  confirmResetPasswordCode(oobCode: string, newPassword: string) {
+    return this.http.post<IVerificationResponse>(environment.confirmResetPassEmail, {
+      oobCode,
+      newPassword
+    }).pipe(catchError(AuthService.handleError));
   }
 
   logOut() {

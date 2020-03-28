@@ -22,3 +22,19 @@ select.ng-invalid.ng-touched {
   font-weight: bold;
   margin-top: 10%;
 }
+
+.forgot-pass-p {
+  margin-top: 10px;
+}
+
+.forgot-pass-a {
+  color: #007bff;
+  text-decoration: none;
+  background-color: transparent;
+}
+
+.forgot-pass-a:hover {
+  cursor: pointer;
+  color: #0056b3;
+  text-decoration: underline;
+}
