@@ -1,6 +1,6 @@
 import { Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 
 import { AuthService } from './auth.service';
@@ -73,27 +73,31 @@ export class AuthComponent implements OnInit, OnDestroy {
     const email = this.authForm.value.email;
     const password = this.authForm.value.password;
 
-    let authObs: Observable<IAuthResponseData>;
-
     if (this.isLoginMode) {
-      authObs = this.authService.logIn(email, password);
-    } else {
-      authObs = this.authService.signUp(email, password);
-    }
-
-    authObs.subscribe(resData => {
-      this.userInfo = resData;
-      this.authService.isEmailSent
-        .subscribe(isSent => {
-          this.isEmailSent = isSent;
+      this.authService.logIn(email, password)
+        .subscribe((resData: IAuthResponseData) => {
+          this.isLoading = false;
+          this.router.navigate(['/users']);
         }, errorMessage => {
           this.showErrorAlert(errorMessage);
+          this.isLoading = false;
         });
-      this.isLoading = false;
-    }, errorMessage => {
-      this.showErrorAlert(errorMessage);
-      this.isLoading = false;
-    });
+    } else {
+      this.authService.signUp(email, password)
+        .subscribe((resData: IAuthResponseData) => {
+          this.userInfo = resData;
+          this.authService.isEmailSent
+            .subscribe(isSent => {
+              this.isEmailSent = isSent;
+            }, errorMessage => {
+              this.showErrorAlert(errorMessage);
+            });
+          this.isLoading = false;
+        }, errorMessage => {
+          this.showErrorAlert(errorMessage);
+          this.isLoading = false;
+        });
+    }
 
     this.authForm.reset();
   }
